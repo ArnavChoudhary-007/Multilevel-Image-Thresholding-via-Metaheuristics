@@ -1,0 +1,25 @@
+# Core numerics
+numpy
+scipy
+pandas
+
+# Imaging
+opencv-python
+scikit-image
+Pillow
+
+# Statistics
+statsmodels
+scikit-posthocs
+scikit-learn
+
+# Metaheuristics (library-provided algorithms; SA + PSO you write yourself)
+mealpy
+
+# Plotting
+matplotlib
+seaborn
+
+# Dev + demo
+jupyter
+streamlit
