@@ -1,0 +1,5 @@
+# Streamlit settings for app.py.
+# "minimal" hides the developer toolbar items, including the Deploy button:
+# this app is a local demo for the viva, not something to publish.
+[client]
+toolbarMode = "minimal"
