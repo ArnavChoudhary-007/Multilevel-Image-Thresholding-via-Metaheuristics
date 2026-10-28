@@ -1,0 +1,42 @@
+camera  otsu  k=3: hit 77%, median hit at eval 3642.0, wasted evals 12.7%, late occupancy at optimum 1.6%
+camera  otsu  k=5: hit 0%, median hit at eval , wasted evals 3.6%, late occupancy at optimum 0.0%
+camera  kapur k=3: hit 23%, median hit at eval 2898.0, wasted evals 17.8%, late occupancy at optimum 4.9%
+camera  kapur k=5: hit 53%, median hit at eval 4321.0, wasted evals 3.7%, late occupancy at optimum 1.3%
+moon    otsu  k=3: hit 100%, median hit at eval 2885.0, wasted evals 27.5%, late occupancy at optimum 23.3%
+moon    otsu  k=5: hit 87%, median hit at eval 4219.5, wasted evals 6.7%, late occupancy at optimum 10.0%
+moon    kapur k=3: hit 57%, median hit at eval 2660.0, wasted evals 29.8%, late occupancy at optimum 31.0%
+moon    kapur k=5: hit 40%, median hit at eval 3749.0, wasted evals 9.0%, late occupancy at optimum 14.7%
+coins   otsu  k=3: hit 87%, median hit at eval 3713.0, wasted evals 16.6%, late occupancy at optimum 4.5%
+coins   otsu  k=5: hit 27%, median hit at eval 4704.0, wasted evals 3.6%, late occupancy at optimum 0.6%
+coins   kapur k=3: hit 87%, median hit at eval 3728.5, wasted evals 13.5%, late occupancy at optimum 3.8%
+coins   kapur k=5: hit 23%, median hit at eval 4638.0, wasted evals 3.2%, late occupancy at optimum 0.3%
+
+A. Metropolis check (worsening moves, 10 equal-count bins)
+   predicted exp(delta/T)  ->  observed acceptance rate   (n)
+                 0.0000  ->    0.0000   (130,560)
+                 0.0000  ->    0.0000   (130,560)
+                 0.0006  ->    0.0006   (130,560)
+                 0.0183  ->    0.0184   (130,560)
+                 0.1110  ->    0.1108   (130,560)
+                 0.2971  ->    0.2964   (130,559)
+                 0.5180  ->    0.5188   (130,559)
+                 0.7162  ->    0.7149   (130,559)
+                 0.8666  ->    0.8690   (130,559)
+                 0.9663  ->    0.9671   (130,559)
+   largest |observed - predicted| = 0.0024
+
+B. Coarse-state transition matrices (rows: from, cols: to; O/N/F)
+   early half (881,274 transitions):
+     O: 0.767  0.151  0.082   (n=245)
+     N: 0.001  0.809  0.189   (n=26,425)
+     F: 0.000  0.006  0.994   (n=854,604)
+   late half (900,000 transitions):
+     O: 0.961  0.037  0.003   (n=34,796)
+     N: 0.003  0.972  0.025   (n=435,959)
+     F: 0.000  0.026  0.974   (n=429,245)
+   from O: early vs late chi2 = 592.6, dof = 2, p = 2.04e-129
+   from N: early vs late chi2 = 20,228.3, dof = 2, p = < 1e-300 (underflows to 0)
+   from F: early vs late chi2 = 9,385.5, dof = 2, p = < 1e-300 (underflows to 0)
+
+Saved figures/sa_acceptance.png, figures/sa_hitting.png
+Saved results/sa_markov_summary.csv, sa_markov_hits.csv, sa_markov_chain.csv

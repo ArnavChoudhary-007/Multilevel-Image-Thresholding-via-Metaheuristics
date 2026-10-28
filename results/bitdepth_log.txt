@@ -1,0 +1,42 @@
+     L   k objective    path       time
+   256   2      otsu  matrix       2 ms
+   256   2     kapur  matrix       2 ms
+   256   3      otsu  matrix       2 ms
+   256   3     kapur  matrix       2 ms
+   256   5      otsu  matrix       3 ms
+   256   5     kapur  matrix       3 ms
+  1024   2      otsu  matrix      57 ms
+  1024   2     kapur  matrix      60 ms
+  1024   3      otsu  matrix      68 ms
+  1024   3     kapur  matrix      70 ms
+  1024   5      otsu  matrix      95 ms
+  1024   5     kapur  matrix      91 ms
+  4096   2      otsu    loop     248 ms
+  4096   2     kapur    loop     267 ms
+  4096   3      otsu    loop     486 ms
+  4096   3     kapur    loop     550 ms
+  4096   5      otsu    loop     840 ms
+  4096   5     kapur    loop      1.2 s
+ 16384   2      otsu    loop      2.4 s
+ 16384   2     kapur    loop      3.0 s
+ 16384   3      otsu    loop      4.7 s
+ 16384   3     kapur    loop      6.2 s
+ 16384   5      otsu    loop      9.3 s
+ 16384   5     kapur    loop     11.7 s
+ 65536   2      otsu    loop     35.4 s
+ 65536   2     kapur    loop     46.1 s
+ 65536   3      otsu    loop     65.6 s
+ 65536   3     kapur    loop     86.2 s
+ 65536   5      otsu    loop      2 min
+ 65536   5     kapur    loop      3 min
+
+Growth exponent b in time ~ L^b between L = 16,384 and 65,536:
+  k=2 otsu  b = 1.94;  16-bit takes 35.4 s, 19,903x the 8-bit time
+  k=2 kapur b = 1.96;  16-bit takes 46.1 s, 24,029x the 8-bit time
+  k=3 otsu  b = 1.91;  16-bit takes 65.6 s, 30,567x the 8-bit time
+  k=3 kapur b = 1.90;  16-bit takes 86.2 s, 39,383x the 8-bit time
+  k=5 otsu  b = 1.91;  16-bit takes 2 min, 46,700x the 8-bit time
+  k=5 kapur b = 1.95;  16-bit takes 3 min, 63,234x the 8-bit time
+
+Saved results/bitdepth.csv
+Saved figures/bitdepth.png

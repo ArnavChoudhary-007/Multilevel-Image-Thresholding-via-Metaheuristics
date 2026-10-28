@@ -1,0 +1,131 @@
+==============================================================================
+STATISTICAL ANALYSIS OF THE MAIN EXPERIMENT
+==============================================================================
+runs in file: 13,440 (expected 13,440); duplicates: 0; negative gaps (would mean a bug): 0
+
+--- Cost of approximation (all images, k and seeds pooled DESCRIPTIVELY) ---
+
+OTSU  algorithm      hit rate  median gap    95% gap    max gap     time
+      random_search      4.7%    9.37e-04   1.36e-02   2.40e-02     82ms
+      hill_climber      71.6%    0.00e+00   4.81e-03   3.31e-02     20ms
+      sa                70.5%    0.00e+00   5.22e-05   1.46e-01     92ms
+      pso               93.5%    0.00e+00   4.36e-06   1.14e-02     65ms
+      ga                35.3%    2.26e-05   6.21e-04   4.58e-03    415ms
+      de                86.1%    0.00e+00   4.07e-04   6.90e-03    294ms
+      gwo               79.7%    0.00e+00   2.82e-04   2.59e-01    233ms
+
+KAPUR  algorithm      hit rate  median gap    95% gap    max gap     time
+      random_search      3.4%    2.11e-03   1.38e-02   2.98e-02     85ms
+      hill_climber      68.3%    0.00e+00   8.11e-03   4.11e-02     22ms
+      sa                63.5%    0.00e+00   6.13e-03   3.81e-02     95ms
+      pso               92.8%    0.00e+00   1.09e-03   1.49e-02     68ms
+      ga                33.0%    7.13e-05   1.93e-03   9.58e-03    414ms
+      de                80.9%    0.00e+00   2.53e-03   1.01e-02    285ms
+      gwo               57.8%    0.00e+00   1.77e-03   1.56e-01    234ms
+
+Hit rate by k (share of runs that found the exact optimum):
+objective     kapur                 otsu                 
+k                 2    3    4    5     2     3     4    5
+algorithm                                                
+random_search   14%   0%   0%   0%   18%    1%    0%   0%
+hill_climber    85%  84%  62%  42%   90%   91%   57%  49%
+sa              97%  68%  53%  36%   98%   88%   62%  34%
+pso            100%  86%  97%  88%  100%   97%  100%  78%
+ga              95%  30%   7%   0%   99%   35%    6%   1%
+de             100%  95%  93%  35%  100%  100%   96%  49%
+gwo            100%  65%  50%  17%  100%   95%   76%  48%
+
+Run time: exact DP median 1.9 ms per (image, objective, k); metaheuristic run median 109 ms (~58x the DP) - measured on THIS machine.
+
+--- Primary analysis: per (objective, k), 8 image blocks x 7 algorithms ---
+Response: per-cell MEDIAN relative gap over 30 seeds.
+Note: with N = 8 images the smallest possible two-sided exact Wilcoxon p is 2/2^8 = 0.0078; Holm over 21 pairs multiplies the smallest by 21 -> 0.164. Pairwise Wilcoxon-Holm therefore CANNOT reach 0.05 with 8 images, by construction; Friedman/Nemenyi is the test with power here.
+
+[otsu k=2]  Friedman chi2 = 44.56, p = 5.73e-08, Kendall's W = 0.93;  Nemenyi CD = 3.18 (q = 2.948, N = 8, K = 7)
+   average ranks (1 = smallest gap): pso 3.44, sa 3.44, de 3.44, ga 3.44, gwo 3.44, hill_climber 3.81, random_search 7.00
+   significantly worse than the best (pso) by Nemenyi: random_search
+   Wilcoxon + Holm: 0 of 21 pairs significant at 0.05 (smallest raw p = 0.0078, smallest Holm p = 0.1641)
+
+[otsu k=3]  Friedman chi2 = 42.75, p = 1.31e-07, Kendall's W = 0.89;  Nemenyi CD = 3.18 (q = 2.948, N = 8, K = 7)
+   average ranks (1 = smallest gap): pso 3.00, sa 3.00, gwo 3.00, de 3.00, hill_climber 3.38, ga 5.62, random_search 7.00
+   significantly worse than the best (pso) by Nemenyi: random_search
+   Wilcoxon + Holm: 0 of 21 pairs significant at 0.05 (smallest raw p = 0.0078, smallest Holm p = 0.1641)
+
+[otsu k=4]  Friedman chi2 = 40.26, p = 4.05e-07, Kendall's W = 0.84;  Nemenyi CD = 3.18 (q = 2.948, N = 8, K = 7)
+   average ranks (1 = smallest gap): pso 2.50, de 2.50, gwo 2.81, sa 3.38, hill_climber 3.94, ga 5.88, random_search 7.00
+   significantly worse than the best (pso) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 0 of 21 pairs significant at 0.05 (smallest raw p = 0.0078, smallest Holm p = 0.1641)
+
+[otsu k=5]  Friedman chi2 = 30.55, p = 3.09e-05, Kendall's W = 0.64;  Nemenyi CD = 3.18 (q = 2.948, N = 8, K = 7)
+   average ranks (1 = smallest gap): pso 1.94, de 2.75, gwo 3.38, hill_climber 3.69, sa 4.00, ga 5.25, random_search 7.00
+   significantly worse than the best (pso) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 0 of 21 pairs significant at 0.05 (smallest raw p = 0.0078, smallest Holm p = 0.1641)
+
+[kapur k=2]  Friedman chi2 = 48.00, p = 1.18e-08, Kendall's W = 1.00;  Nemenyi CD = 3.18 (q = 2.948, N = 8, K = 7)
+   average ranks (1 = smallest gap): hill_climber 3.50, sa 3.50, pso 3.50, ga 3.50, gwo 3.50, de 3.50, random_search 7.00
+   significantly worse than the best (hill_climber) by Nemenyi: random_search
+   Wilcoxon + Holm: 0 of 21 pairs significant at 0.05 (smallest raw p = 0.0078, smallest Holm p = 0.1641)
+
+[kapur k=3]  Friedman chi2 = 33.41, p = 8.73e-06, Kendall's W = 0.70;  Nemenyi CD = 3.18 (q = 2.948, N = 8, K = 7)
+   average ranks (1 = smallest gap): de 2.69, sa 3.00, hill_climber 3.12, pso 3.38, gwo 3.56, ga 5.38, random_search 6.88
+   significantly worse than the best (de) by Nemenyi: random_search
+   Wilcoxon + Holm: 0 of 21 pairs significant at 0.05 (smallest raw p = 0.0078, smallest Holm p = 0.1641)
+
+[kapur k=4]  Friedman chi2 = 34.84, p = 4.64e-06, Kendall's W = 0.73;  Nemenyi CD = 3.18 (q = 2.948, N = 8, K = 7)
+   average ranks (1 = smallest gap): pso 2.25, de 2.25, hill_climber 3.50, gwo 3.62, sa 3.88, ga 5.50, random_search 7.00
+   significantly worse than the best (pso) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 0 of 21 pairs significant at 0.05 (smallest raw p = 0.0078, smallest Holm p = 0.1641)
+
+[kapur k=5]  Friedman chi2 = 35.00, p = 4.30e-06, Kendall's W = 0.73;  Nemenyi CD = 3.18 (q = 2.948, N = 8, K = 7)
+   average ranks (1 = smallest gap): pso 1.50, hill_climber 3.00, sa 3.00, gwo 3.62, de 4.25, ga 5.75, random_search 6.88
+   significantly worse than the best (pso) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 0 of 21 pairs significant at 0.05 (smallest raw p = 0.0078, smallest Holm p = 0.1641)
+
+--- Overall ranking per objective (8 image blocks; response = mean over k of the per-cell median gap) ---
+
+[otsu overall]  Friedman chi2 = 31.91, p = 1.70e-05, Kendall's W = 0.66;  Nemenyi CD = 3.18 (q = 2.948, N = 8, K = 7)
+   average ranks (1 = smallest gap): pso 1.81, de 2.56, gwo 3.31, sa 3.94, hill_climber 4.12, ga 5.25, random_search 7.00
+   significantly worse than the best (pso) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 0 of 21 pairs significant at 0.05 (smallest raw p = 0.0078, smallest Holm p = 0.1641)
+
+[kapur overall]  Friedman chi2 = 28.90, p = 6.35e-05, Kendall's W = 0.60;  Nemenyi CD = 3.18 (q = 2.948, N = 8, K = 7)
+   average ranks (1 = smallest gap): pso 1.88, hill_climber 2.94, gwo 3.50, sa 3.62, de 3.81, ga 5.25, random_search 7.00
+   significantly worse than the best (pso) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 0 of 21 pairs significant at 0.05 (smallest raw p = 0.0078, smallest Holm p = 0.1641)
+
+Does the ranking change between criteria? Kendall's tau between the Otsu and Kapur average-rank orders = 0.52 (p = 0.136, K = 7).
+
+[ART ANOVA, otsu]  response = median_rel_gap, block = image
+   C(algorithm)         F(6, 189) =    20.60, p = 1.66e-18
+   C(k)                 F(3, 189) =   133.50, p = 1.88e-46
+   C(algorithm):C(k)    F(18, 189) =    11.15, p = 2.43e-21
+
+[ART ANOVA, kapur]  response = median_rel_gap, block = image
+   C(algorithm)         F(6, 189) =    26.45, p = 9.41e-23
+   C(k)                 F(3, 189) =    58.53, p = 8.33e-27
+   C(algorithm):C(k)    F(18, 189) =     9.14, p = 1.13e-17
+
+--- Reconstruction fidelity of the returned thresholds (PSNR/SSIM) ---
+Difference vs the EXACT optimum's segmentation; negative = worse fidelity.
+
+OTSU  algorithm      median dPSNR  5% dPSNR median dSSIM  5% dSSIM
+      random_search      -0.072dB  -0.738dB      -0.0007   -0.0138
+      hill_climber        0.000dB  -0.084dB       0.0000   -0.0023
+      sa                  0.000dB  -0.009dB       0.0000   -0.0010
+      pso                 0.000dB   0.000dB       0.0000   -0.0003
+      ga                  0.000dB  -0.048dB       0.0000   -0.0035
+      de                  0.000dB  -0.065dB       0.0000   -0.0009
+      gwo                 0.000dB  -0.056dB       0.0000   -0.0066
+
+KAPUR  algorithm      median dPSNR  5% dPSNR median dSSIM  5% dSSIM
+      random_search      -0.050dB  -1.354dB      -0.0005   -0.0167
+      hill_climber        0.000dB  -0.193dB       0.0000   -0.0023
+      sa                  0.000dB  -0.252dB       0.0000   -0.0034
+      pso                 0.000dB   0.000dB       0.0000    0.0000
+      ga                  0.000dB  -0.186dB       0.0000   -0.0037
+      de                  0.000dB  -0.107dB       0.0000   -0.0013
+      gwo                 0.000dB  -0.284dB       0.0000   -0.0043
+
+(3,687 distinct segmentations evaluated)
+
+Saved results/cell_summary.csv, stats_descriptive.csv, stats_hit_by_k.csv, stats_friedman.csv, stats_wilcoxon.csv, stats_art.csv, stats_fidelity.csv, stats_report.txt
