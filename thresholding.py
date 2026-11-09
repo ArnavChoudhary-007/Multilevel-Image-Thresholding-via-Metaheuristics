@@ -18,17 +18,61 @@ from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
 EPS = 1e-12
 
+# Benchmark image lists. The 16 extension images were fixed before any
+# extension experiment ran; selection rules are in EXTENSIONS_DECISIONS.md.
+# Five of them (eagle, human_mitosis, nickel_solidification, skin, vortex)
+# are not bundled with scikit-image: skimage.data downloads them once via
+# pooch, hash-checked, into the local cache.
+BENCHMARK_ORIGINAL = [
+    "camera", "coins", "moon", "page", "clock", "astronaut", "coffee", "cell"
+]
+
+BENCHMARK_16_NEW = [
+    "brick", "chelsea", "eagle", "grass", "gravel", "hubble_deep_field",
+    "human_mitosis", "immunohistochemistry", "microaneurysms", "nickel_solidification",
+    "retina", "rocket", "skin", "stereo_motorcycle", "text", "vortex"
+]
+
+BENCHMARK_24 = BENCHMARK_ORIGINAL + BENCHMARK_16_NEW
+
 
 # ----------------------------------------------------------------------
 # Images and histograms
 # ----------------------------------------------------------------------
 
 def load_grey(name="camera"):
-    """Load one of scikit-image's bundled sample images as uint8 greyscale."""
-    img = getattr(data, name)()
-    if img.ndim == 3:
+    """
+    Load a scikit-image sample image as uint8 greyscale.
+
+    The 8 original images go through exactly the same path as before
+    (colour -> rgb2gray -> img_as_ubyte); verify_extended.py checks they are
+    pixel-identical, so results/runs.csv stays valid. Three of the extension
+    images are multi-frame, so one frame is fixed in advance:
+      stereo_motorcycle -> left view,  nickel_solidification -> frame 0,
+      vortex -> frame 0.
+    16-bit frames are reduced to 8 bits by dropping the low byte (>> 8).
+    """
+    if name == "stereo_motorcycle":
+        img = data.stereo_motorcycle()[0]
+    elif name == "nickel_solidification":
+        img = data.nickel_solidification()[0]
+    elif name == "vortex":
+        img = data.vortex()[0]
+    else:
+        img = getattr(data, name)()
+    if img.ndim == 3 and img.shape[-1] in (3, 4):
+        if img.shape[-1] == 4:
+            img = img[..., :3]
         img = rgb2gray(img)
-    return img_as_ubyte(img)
+        return img_as_ubyte(img)
+    elif img.ndim == 2:
+        if img.dtype in (np.float32, np.float64):
+            return img_as_ubyte(img)
+        elif img.dtype == np.uint16:
+            return (img >> 8).astype(np.uint8)
+        else:
+            return img.astype(np.uint8)
+    raise ValueError(f"Unsupported image shape {img.shape} for {name}")
 
 
 def histogram(img):
@@ -389,6 +433,237 @@ def bruteforce_kapur(p, k):
             best_thresh = head + (int(t[idx]),)
 
     return best_thresh, best_score
+
+
+# ----------------------------------------------------------------------
+# Multilevel Tsallis entropy (Part C - non-separable criterion)
+# ----------------------------------------------------------------------
+#
+# Tsallis entropy for thresholding goes back to Portes de Albuquerque et al.
+# (2004, Pattern Recognition Letters 25(9):1059-1065). The multilevel form
+# used here,
+#
+#     S_q(t) = sum_c S_c + (1 - q) * prod_c S_c,
+#
+# is the one specified for this study (see EXTENSIONS_DECISIONS.md). Which
+# exact form each published paper uses has NOT been verified from full text.
+#
+# WHY IT IS NOT SEPARABLE: the product term couples every class, so the best
+# place for one threshold depends on the entropies of ALL the other classes.
+# The DP's recurrence "best prefix + one more class" no longer holds.
+#
+# CAUTION (important for the paper): the TRUE pseudo-additive rule for many
+# independent subsystems is  1 + (1-q) S = prod_c (1 + (1-q) S_c),  which
+# expands to sum + pairwise products + triple products + ... For k = 1 (two
+# classes) it equals the form above; for k >= 2 it does not. That true form
+# IS solvable by DP, because 1 + (1-q) S_c = A_c = sum_{i in c} (p_i/w_c)^q > 0
+# and maximising prod_c A_c is maximising sum_c ln A_c (for q < 1).
+# See dp_tsallis_pseudoadditive below.
+
+def tsallis_score(p, thresholds, q=0.7):
+    """
+    Multilevel Tsallis criterion S_q = sum_c S_c + (1 - q) prod_c S_c.
+    Reference implementation: a plain loop, used to check the fast versions.
+
+    Parameters
+    ----------
+    p : normalised histogram over [0, L-1]
+    thresholds : sorted sequence of thresholds in [1, L-2]
+    q : entropic index (q != 1; default 0.7)
+
+    Returns
+    -------
+    S_q(t) = sum_c S_c + (1 - q) * prod_c S_c
+    where S_c = (1 - sum_{i in C_c} (p(i)/omega_c)^q) / (q - 1)
+    and omega_c = sum_{i in C_c} p(i).
+    Returns -inf if any class has omega_c <= 0.
+    """
+    bounds = (-1,) + tuple(sorted(thresholds)) + (len(p) - 1,)
+    if abs(q - 1.0) < 1e-12:
+        return kapur_score(p, thresholds)
+
+    s_classes = []
+    for lo, hi in zip(bounds[:-1], bounds[1:]):
+        seg = p[lo + 1: hi + 1]
+        w = seg.sum()
+        if w <= 0:
+            return -np.inf
+        pos = seg[seg > 0]
+        if pos.size == 0:
+            return -np.inf
+        sum_pq = np.sum((pos / w) ** q)
+        s_c = (1.0 - sum_pq) / (q - 1.0)
+        s_classes.append(s_c)
+
+    return sum(s_classes) + (1.0 - q) * float(np.prod(s_classes))
+
+
+def tsallis_table(p, q=0.7):
+    """
+    Class Tsallis entropy S_c for EVERY class, as an L x L table:
+    table[lo, hi] = S_c of the class covering grey levels lo..hi inclusive
+    (-inf if that class has zero mass, or hi < lo).
+
+    Uses  sum_i (p_i / w)^q = (sum_i p_i^q) / w^q.  Each row is accumulated
+    from its own start level (cumsum of p[lo:]) rather than as a difference
+    of two global cumulative sums: the difference form loses ~8 digits to
+    cancellation on small classes late in the histogram (seen as a 3.5e-8
+    mismatch on 'coins' in test_tsallis.py); this form does not, at the
+    same O(L^2) cost. L = 256 -> 65,536 entries, built once per image.
+    """
+    p = np.asarray(p, dtype=np.float64)
+    L = len(p)
+    pq = np.zeros(L, dtype=np.float64)
+    pos = p > 0
+    pq[pos] = p[pos] ** q
+
+    table = np.full((L, L), -np.inf, dtype=np.float64)
+    for lo in range(L):
+        w = np.cumsum(p[lo:])
+        a = np.cumsum(pq[lo:])
+        valid = w > 0
+        hi_idx = np.where(valid)[0] + lo
+        table[lo, hi_idx] = (1.0 - a[valid] / w[valid] ** q) / (q - 1.0)
+    return table
+
+
+def bruteforce_tsallis(p, k, q=0.7):
+    """
+    Exact exhaustive search for multilevel Tsallis entropy (k in {1, 2, 3}).
+    Vectorised over the final threshold for speed.
+    """
+    if k not in (1, 2, 3):
+        raise ValueError("bruteforce_tsallis is practical only for k in {1, 2, 3}")
+
+    L = len(p)
+    table = tsallis_table(p, q)
+    best_thresh, best_score = None, -np.inf
+
+    if k == 1:
+        s0 = table[0, 1:L - 1]
+        s1 = table[2:L, L - 1]
+        valid = np.isfinite(s0) & np.isfinite(s1)
+        scores = np.full_like(s0, -np.inf)
+        if np.any(valid):
+            scores[valid] = s0[valid] + s1[valid] + (1.0 - q) * s0[valid] * s1[valid]
+        idx = int(np.argmax(scores))
+        return (idx + 1,), float(scores[idx])
+
+    if k == 2:
+        for t1 in range(1, L - 2):
+            s0 = table[0, t1]
+            if not np.isfinite(s0):
+                continue
+            s1 = table[t1 + 1, t1 + 1:L - 1]
+            s2 = table[t1 + 2:L, L - 1]
+            valid = np.isfinite(s1) & np.isfinite(s2)
+            if not np.any(valid):
+                continue
+            scores = np.full_like(s1, -np.inf)
+            scores[valid] = s0 + s1[valid] + s2[valid] + (1.0 - q) * s0 * s1[valid] * s2[valid]
+            idx = int(np.argmax(scores))
+            if scores[idx] > best_score:
+                best_score = float(scores[idx])
+                best_thresh = (t1, t1 + 1 + idx)
+        return best_thresh, best_score
+
+    if k == 3:
+        for t1 in range(1, L - 3):
+            s0 = table[0, t1]
+            if not np.isfinite(s0):
+                continue
+            for t2 in range(t1 + 1, L - 2):
+                s1 = table[t1 + 1, t2]
+                if not np.isfinite(s1):
+                    continue
+                s2 = table[t2 + 1, t2 + 1:L - 1]
+                s3 = table[t2 + 2:L, L - 1]
+                valid = np.isfinite(s2) & np.isfinite(s3)
+                if not np.any(valid):
+                    continue
+                scores = np.full_like(s2, -np.inf)
+                scores[valid] = s0 + s1 + s2[valid] + s3[valid] + (1.0 - q) * s0 * s1 * s2[valid] * s3[valid]
+                idx = int(np.argmax(scores))
+                if scores[idx] > best_score:
+                    best_score = float(scores[idx])
+                    best_thresh = (t1, t2, t2 + 1 + idx)
+        return best_thresh, best_score
+
+
+def tsallis_pa_score(p, thresholds, q=0.7):
+    """
+    TRUE pseudo-additive Tsallis entropy of the k+1 classes:
+
+        1 + (1-q) S = prod_c A_c,   A_c = sum_{i in c} (p_i / w_c)^q,
+        so  S = (prod_c A_c - 1) / (1 - q).
+
+    Reference loop implementation (checks dp_tsallis_pseudoadditive).
+    Equals tsallis_score when k = 1 (two classes); differs for k >= 2.
+    """
+    bounds = (-1,) + tuple(sorted(thresholds)) + (len(p) - 1,)
+    prod = 1.0
+    for lo, hi in zip(bounds[:-1], bounds[1:]):
+        seg = p[lo + 1: hi + 1]
+        w = seg.sum()
+        if w <= 0:
+            return -np.inf
+        prod *= np.sum((seg[seg > 0] / w) ** q)
+    return (prod - 1.0) / (1.0 - q)
+
+
+def dp_tsallis_pseudoadditive(p, k, q=0.7):
+    """
+    EXACT optimum of the true pseudo-additive Tsallis entropy, by DP.
+
+    Why the DP applies: for q < 1 the factor 1/(1-q) is positive, so
+    maximising S is maximising prod_c A_c, i.e. maximising sum_c ln A_c -
+    a SUM of per-class terms again. With cumulative tables of p and p^q,
+    ln A_c = ln(sum_{i in c} p_i^q) - q ln w_c is O(1) per class, and the
+    same recurrence as dp_multilevel gives the optimum in O(k L^2).
+    (For q > 1 the sign flips and one would minimise sum ln A_c instead.)
+
+    Returns (thresholds, S) with S from tsallis_pa_score's formula.
+    """
+    if not q < 1:
+        raise ValueError("implemented for q < 1 (the regime used in this study)")
+    p = np.asarray(p, dtype=np.float64)
+    L = p.size
+    pq = np.zeros(L)
+    nz = p > 0
+    pq[nz] = p[nz] ** q
+    P = np.concatenate([[0.0], np.cumsum(p)])
+    PQ = np.concatenate([[0.0], np.cumsum(pq)])
+
+    # G[s, t] = ln A for the class (s, t], -inf where empty or s >= t
+    s_idx = np.arange(L)[:, None]
+    t_idx = np.arange(L)[None, :]
+    w = P[t_idx + 1] - P[s_idx + 1]
+    a = PQ[t_idx + 1] - PQ[s_idx + 1]
+    G = np.full((L, L), -np.inf)
+    ok = (s_idx < t_idx) & (w > 0) & (a > 0)
+    G[ok] = np.log(np.broadcast_to(a, (L, L))[ok]) - q * np.log(np.broadcast_to(w, (L, L))[ok])
+    # class 0 = (-1, t]
+    w0, a0 = P[1:], PQ[1:]
+    first = np.full(L, -np.inf)
+    ok0 = (w0 > 0) & (a0 > 0)
+    first[ok0] = np.log(a0[ok0]) - q * np.log(w0[ok0])
+
+    D = np.full((k + 1, L), -np.inf)
+    B = np.full((k + 1, L), -1, dtype=np.int64)
+    D[0, 1:L - 1] = first[1:L - 1]
+    for j in range(1, k + 1):
+        M = D[j - 1][:, None] + G
+        cols = [L - 1] if j == k else list(range(j + 1, L - 1))
+        D[j, cols] = M.max(axis=0)[cols]
+        B[j, cols] = M.argmax(axis=0)[cols]
+    if not np.isfinite(D[k, L - 1]):
+        return None, -np.inf
+    thresholds, t = [], L - 1
+    for j in range(k, 0, -1):
+        t = int(B[j, t])
+        thresholds.append(t)
+    thresholds = tuple(reversed(thresholds))
+    return thresholds, float((np.exp(D[k, L - 1]) - 1.0) / (1.0 - q))
 
 
 # ----------------------------------------------------------------------
