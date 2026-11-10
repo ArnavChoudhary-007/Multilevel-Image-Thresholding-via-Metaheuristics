@@ -62,3 +62,23 @@ All coding tasks are done, the full experiment has been run, and the final repor
 | 6 | `bitdepth_scaling.py` | ~10 min |
 
 `results/` and `figures/` are not tracked by git (see `.gitignore`), so commit the code and the report. Keep `results/runs.csv` somewhere safe, since the analysis depends on it.
+
+---
+
+## 10 Nov 2026: extensions (branch `extended`)
+
+Full detail: `EXTENSIONS_REPORT.md`. Parameters fixed beforehand in `EXTENSIONS_DECISIONS.md`. `results/runs.csv` and the earlier figures and tables were not touched.
+
+**Done and run:**
+- **Part A, 24 images (26,880 new runs).** The ranking is confirmed: Kendall's τ vs the 8-image ranking is +0.63 to +1.00; Friedman p < 1e-15 in every condition; the critical difference falls from 3.18 to 1.84. PSO is still first overall for both criteria. Many Wilcoxon pairs have too few non-tied images to be significant, which the paper should state.
+- **Part B, bit depth (2,240 runs, single process).** On this laptop the exact DP becomes slower than a 5,000-evaluation metaheuristic at L = 1,024 to 4,096. At L = 65,536 the DP takes 34–204 s; DE takes about 0.17 s. At k = 5 no optimiser reliably finds the exact optimum at large L (best hit rate 20%), but the median gap is within 0.04%.
+- **Part C, Tsallis (20,160 runs).** At k = 2 exhaustive search (0.016 s) beats nearly every optimiser run; at k = 3 (0.44 s) optimisers are faster but hit the exact optimum only 33–94% of the time. For k = 4, 5 there is no proven optimum. Two pre-registered hypotheses (H4, H5) partly failed and are reported as such.
+- **Paper change:** the claim "the DP cannot solve Tsallis" is true only for the sum-plus-product form; the pseudo-additive form is solvable exactly by DP.
+- All six test suites pass (573 checks). Five new figures are in `figures/extensions/`.
+
+**Open items for you:**
+1. Check the two Tsallis source PDFs: the formula, whether q = 0.7 matches, and the author lists (none could be verified online).
+2. Confirm the five scikit-image images downloaded through `pooch` are acceptable.
+3. Keep a copy of `results/runs_extended.csv`, `runs_tsallis.csv` and `bitdepth_*.csv` outside the repo (they are gitignored).
+4. Decide whether to push `extended`, and whether to delete `make_branch.bat`.
+

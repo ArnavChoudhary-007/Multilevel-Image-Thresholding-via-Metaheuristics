@@ -77,4 +77,9 @@ never committed. Before committing, it was corrected as follows:
 
 ## Amendments
 
-*(none yet)*
+All dated 10 Nov 2026. **No parameter, image, hypothesis or analysis was changed.** These are process events, recorded for transparency.
+
+- **Restarted runs.** The first background runs of Parts A and C were killed when the host application restarted. They were relaunched with the same commands. Both runners are resumable and skip rows already written; the partial `runs_extended.csv` was checked first (9,392 rows, no NaN, no duplicates), and the final files have exactly 26,880 and 20,160 rows with no duplicates.
+- **Timing conditions.** Parts A and C ran with 4 worker processes, so their optimiser wall-times are inflated by contention; Part C's exhaustive solves ran single-process. Part B ran single-process, but two idle Streamlit processes (the project UI) were open on the laptop at the time.
+- **Hypotheses H4 and H5 (Part C) were not met** as stated; see `EXTENSIONS_REPORT.md` §3.5. They are not edited here.
+- **Emphasis chosen after seeing results:** the effective-N warning and the pseudo-additive caveat were placed prominently in the report after the output was seen. The numbers are unchanged.
