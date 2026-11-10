@@ -1,0 +1,75 @@
+﻿  DP  camera L=   256 k=2 otsu :     0.002 s  (87, 176)
+  ran L=   256 k=2 otsu : 7 algorithms x 10 seeds
+  DP  camera L=   256 k=3 otsu :     0.002 s  (69, 134, 180)
+  ran L=   256 k=3 otsu : 7 algorithms x 10 seeds
+  DP  camera L=   256 k=5 otsu :     0.002 s  (19, 55, 107, 147, 182)
+  ran L=   256 k=5 otsu : 7 algorithms x 10 seeds
+  DP  camera L=   256 k=2 kapur:     0.003 s  (49, 123)
+  ran L=   256 k=2 kapur: 7 algorithms x 10 seeds
+  DP  camera L=   256 k=3 kapur:     0.002 s  (49, 123, 222)
+  ran L=   256 k=3 kapur: 7 algorithms x 10 seeds
+  DP  camera L=   256 k=5 kapur:     0.002 s  (39, 80, 123, 169, 222)
+  ran L=   256 k=5 kapur: 7 algorithms x 10 seeds
+  DP  camera L=  1024 k=2 otsu :     0.039 s  (352, 706)
+  ran L=  1024 k=2 otsu : 7 algorithms x 10 seeds
+  DP  camera L=  1024 k=3 otsu :     0.048 s  (281, 539, 722)
+  ran L=  1024 k=3 otsu : 7 algorithms x 10 seeds
+  DP  camera L=  1024 k=5 otsu :     0.064 s  (80, 221, 430, 590, 733)
+  ran L=  1024 k=5 otsu : 7 algorithms x 10 seeds
+  DP  camera L=  1024 k=2 kapur:     0.041 s  (198, 495)
+  ran L=  1024 k=2 kapur: 7 algorithms x 10 seeds
+  DP  camera L=  1024 k=3 kapur:     0.049 s  (198, 495, 891)
+  ran L=  1024 k=3 kapur: 7 algorithms x 10 seeds
+  DP  camera L=  1024 k=5 kapur:     0.066 s  (159, 323, 495, 677, 891)
+  ran L=  1024 k=5 kapur: 7 algorithms x 10 seeds
+  DP  camera L=  4096 k=2 otsu :     0.178 s  (1411, 2826)
+  ran L=  4096 k=2 otsu : 7 algorithms x 10 seeds
+  DP  camera L=  4096 k=3 otsu :     0.348 s  (1125, 2158, 2891)
+  ran L=  4096 k=3 otsu : 7 algorithms x 10 seeds
+  DP  camera L=  4096 k=5 otsu :     0.706 s  (324, 889, 1725, 2364, 2934)
+  ran L=  4096 k=5 otsu : 7 algorithms x 10 seeds
+  DP  camera L=  4096 k=2 kapur:     0.212 s  (797, 1983)
+  ran L=  4096 k=2 kapur: 7 algorithms x 10 seeds
+  DP  camera L=  4096 k=3 kapur:     0.421 s  (797, 1983, 3567)
+  ran L=  4096 k=3 kapur: 7 algorithms x 10 seeds
+  DP  camera L=  4096 k=5 kapur:     0.854 s  (640, 1302, 1992, 2713, 3567)
+  ran L=  4096 k=5 kapur: 7 algorithms x 10 seeds
+  DP  camera L= 16384 k=2 otsu :     1.595 s  (5649, 11307)
+  ran L= 16384 k=2 otsu : 7 algorithms x 10 seeds
+  DP  camera L= 16384 k=3 otsu :     3.209 s  (4505, 8636, 11565)
+  ran L= 16384 k=3 otsu : 7 algorithms x 10 seeds
+  DP  camera L= 16384 k=5 otsu :     6.436 s  (1299, 3558, 6903, 9458, 11737)
+  ran L= 16384 k=5 otsu : 7 algorithms x 10 seeds
+  DP  camera L= 16384 k=2 kapur:     2.162 s  (3166, 7973)
+  ran L= 16384 k=2 kapur: 7 algorithms x 10 seeds
+  DP  camera L= 16384 k=3 kapur:     4.275 s  (3166, 7618, 10957)
+  ran L= 16384 k=3 kapur: 7 algorithms x 10 seeds
+  DP  camera L= 16384 k=5 kapur:     8.963 s  (2563, 5275, 8050, 10893, 14268)
+  ran L= 16384 k=5 kapur: 7 algorithms x 10 seeds
+  DP  camera L= 65536 k=2 otsu :    34.179 s  (22598, 45231)
+  ran L= 65536 k=2 otsu : 7 algorithms x 10 seeds
+  DP  camera L= 65536 k=3 otsu :    60.463 s  (18021, 34545, 46263)
+  ran L= 65536 k=3 otsu : 7 algorithms x 10 seeds
+  DP  camera L= 65536 k=5 otsu :   110.257 s  (5200, 14236, 27615, 37836, 46951)
+  ran L= 65536 k=5 otsu : 7 algorithms x 10 seeds
+  DP  camera L= 65536 k=2 kapur:    46.814 s  (11521, 34327)
+  ran L= 65536 k=2 kapur: 7 algorithms x 10 seeds
+  DP  camera L= 65536 k=3 kapur:    90.969 s  (10741, 32204, 44436)
+  ran L= 65536 k=3 kapur: 7 algorithms x 10 seeds
+  DP  camera L= 65536 k=5 kapur:   204.430 s  (9511, 22961, 34327, 42480, 49925)
+  ran L= 65536 k=5 kapur: 7 algorithms x 10 seeds
+  DP  cells3d L= 65536 k=2 otsu :    30.192 s  (8820, 17308)
+  ran L= 65536 k=2 otsu : 7 algorithms x 10 seeds
+  DP  cells3d L= 65536 k=2 kapur:    46.185 s  (17735, 28310)
+  ran L= 65536 k=2 kapur: 7 algorithms x 10 seeds
+
+Crossover: smallest measured L where the exact DP is slower than the median optimiser run ('-' = DP faster at every L measured)
+  camera  k=2 kapur: random_search 4096, hill_climber 1024, sa 4096, pso 4096, ga 16384, de 4096, gwo 4096
+  camera  k=2 otsu : random_search 4096, hill_climber 1024, sa 4096, pso 4096, ga 16384, de 4096, gwo 4096
+  camera  k=3 kapur: random_search 4096, hill_climber 1024, sa 4096, pso 1024, ga 4096, de 4096, gwo 4096
+  camera  k=3 otsu : random_search 4096, hill_climber 1024, sa 4096, pso 1024, ga 4096, de 4096, gwo 4096
+  camera  k=5 kapur: random_search 4096, hill_climber 1024, sa 4096, pso 1024, ga 4096, de 4096, gwo 4096
+  camera  k=5 otsu : random_search 4096, hill_climber 1024, sa 4096, pso 1024, ga 4096, de 4096, gwo 4096
+  cells3d k=2 kapur: random_search 65536, hill_climber 65536, sa 65536, pso 65536, ga 65536, de 65536, gwo 65536
+  cells3d k=2 otsu : random_search 65536, hill_climber 65536, sa 65536, pso 65536, ga 65536, de 65536, gwo 65536
+Saved results\bitdepth_crossover.csv
