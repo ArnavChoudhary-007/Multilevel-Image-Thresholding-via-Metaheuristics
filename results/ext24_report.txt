@@ -1,0 +1,245 @@
+==============================================================================
+EXTENSION PART A - 24 IMAGES (8 original + 16 new), UNCHANGED PROTOCOL
+==============================================================================
+runs: 13,440 (runs.csv) + 26,880 (runs_extended.csv) = 40,320 (expected 13,440 + 26,880 = 40,320); images: 24; duplicates: 0; negative gaps: 0
+Nemenyi critical difference for K = 7, N = 24: CD = q*sqrt(K(K+1)/(6N)) = 2.948 * sqrt(56/144) = 1.839  (N = 8 gave 3.18)
+
+--- Cost of approximation, 24 images (pooled DESCRIPTIVELY over images, k, seeds) ---
+
+OTSU  algorithm      hit rate  median gap    95% gap    max gap    time*
+      random_search      4.5%    1.14e-03   1.32e-02   7.84e-02    116ms
+      hill_climber      68.0%    0.00e+00   4.04e-03        inf     34ms
+      sa                74.0%    0.00e+00   4.66e-05   1.46e-01    123ms
+      pso               93.3%    0.00e+00   4.42e-06   1.14e-02     82ms
+      ga                34.4%    2.57e-05   6.49e-04   6.19e-02    445ms
+      de                86.6%    0.00e+00   3.19e-04   6.90e-03    305ms
+      gwo               81.0%    0.00e+00   9.00e-05        inf    289ms
+
+KAPUR algorithm      hit rate  median gap    95% gap    max gap    time*
+      random_search      4.2%    1.85e-03   1.68e-02   1.23e-01    119ms
+      hill_climber      67.3%    0.00e+00   7.44e-03        inf     37ms
+      sa                64.5%    0.00e+00   2.70e-03   2.15e-01    129ms
+      pso               89.4%    0.00e+00   8.03e-04   3.61e-02     87ms
+      ga                33.3%    5.57e-05   1.91e-03   1.40e-01    440ms
+      de                79.8%    0.00e+00   2.27e-03   1.62e-02    306ms
+      gwo               64.0%    0.00e+00   2.58e-03        inf    286ms
+* median run time on the 16 NEW images only (this laptop, 4 worker processes); runs.csv was timed on a different machine and is not pooled.
+
+Hit rate by k, 24 images (share of runs that found the exact optimum):
+objective     kapur                 otsu                
+k                 2    3    4    5     2     3    4    5
+algorithm                                               
+random_search   17%   0%   0%   0%   18%    1%   0%   0%
+hill_climber    90%  80%  58%  40%   94%   90%  53%  36%
+sa              98%  77%  52%  31%   99%   93%  67%  37%
+pso             99%  94%  91%  73%  100%   98%  98%  76%
+ga              96%  31%   6%   0%   98%   33%   6%   1%
+de             100%  97%  92%  31%  100%  100%  96%  51%
+gwo             96%  81%  56%  23%  100%   97%  80%  47%
+
+Same table, 8 original vs 16 new images (is the new set harder or easier?):
+  8 original random_search 5%/3%  hill_climber 72%/68%  sa 71%/64%  pso 94%/93%  ga 35%/33%  de 86%/81%  gwo 80%/58%   (Otsu/Kapur)
+  16 new     random_search 4%/5%  hill_climber 66%/67%  sa 76%/65%  pso 93%/88%  ga 34%/33%  de 87%/79%  gwo 82%/67%   (Otsu/Kapur)
+
+--- Primary analysis: per (criterion, k), 24 image blocks x 7 algorithms ---
+Response: per-cell MEDIAN relative gap over 30 seeds (1 = smallest gap).
+
+[otsu k=2]  Friedman chi2 = 135.07, p = 1.10e-26, Kendall's W = 0.94;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 3.46, sa 3.46, de 3.46, ga 3.46, gwo 3.46, hill_climber 3.73, random_search 6.98
+   significantly worse than the best (pso) by Nemenyi: random_search
+   Wilcoxon + Holm: 6 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[otsu k=3]  Friedman chi2 = 129.49, p = 1.65e-25, Kendall's W = 0.90;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 2.98, sa 2.98, gwo 2.98, de 2.98, hill_climber 3.38, ga 5.75, random_search 6.96
+   significantly worse than the best (pso) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 11 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[otsu k=4]  Friedman chi2 = 124.33, p = 2.00e-24, Kendall's W = 0.86;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 2.58, de 2.58, gwo 2.79, sa 3.04, hill_climber 4.12, ga 5.92, random_search 6.96
+   significantly worse than the best (pso) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 15 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[otsu k=5]  Friedman chi2 = 95.68, p = 2.00e-18, Kendall's W = 0.66;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 2.02, de 2.69, gwo 3.21, sa 3.62, hill_climber 3.88, ga 5.62, random_search 6.96
+   significantly worse than the best (pso) by Nemenyi: hill_climber, ga, random_search
+   Wilcoxon + Holm: 12 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[otsu overall]  Friedman chi2 = 103.83, p = 3.98e-20, Kendall's W = 0.72;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 1.85, de 2.56, gwo 3.02, sa 3.48, hill_climber 4.50, ga 5.62, random_search 6.96
+   significantly worse than the best (pso) by Nemenyi: hill_climber, ga, random_search
+   Wilcoxon + Holm: 17 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[kapur k=2]  Friedman chi2 = 132.54, p = 3.75e-26, Kendall's W = 0.92;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 3.46, sa 3.46, de 3.46, ga 3.46, hill_climber 3.58, gwo 3.62, random_search 6.96
+   significantly worse than the best (pso) by Nemenyi: random_search
+   Wilcoxon + Holm: 6 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[kapur k=3]  Friedman chi2 = 115.47, p = 1.46e-22, Kendall's W = 0.80;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): de 2.83, sa 2.94, pso 3.06, gwo 3.23, hill_climber 3.38, ga 5.65, random_search 6.92
+   significantly worse than the best (de) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 9 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[kapur k=4]  Friedman chi2 = 103.22, p = 5.33e-20, Kendall's W = 0.72;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): de 2.33, pso 2.44, gwo 3.21, sa 3.71, hill_climber 3.81, ga 5.58, random_search 6.92
+   significantly worse than the best (de) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 14 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[kapur k=5]  Friedman chi2 = 93.45, p = 5.81e-18, Kendall's W = 0.65;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 1.85, sa 3.02, hill_climber 3.19, gwo 3.52, de 3.88, ga 5.62, random_search 6.92
+   significantly worse than the best (pso) by Nemenyi: de, ga, random_search
+   Wilcoxon + Holm: 12 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[kapur overall]  Friedman chi2 = 83.99, p = 5.35e-16, Kendall's W = 0.58;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 1.90, hill_climber 3.33, sa 3.42, gwo 3.50, de 3.56, ga 5.38, random_search 6.92
+   significantly worse than the best (pso) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 8 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+--- Effective N of the Wilcoxon tests (24 images) ---
+A pair of images with zero difference is dropped by the signed-rank test,
+so the usable N is n_eff = N - (number of zero differences).
+  [otsu k=2] n_eff over the 21 pairs: min 0, median 2, max 24 (N = 24); pairs with n_eff < N: 16/21; significant after Holm: 6/21
+  [otsu k=3] n_eff over the 21 pairs: min 0, median 22, max 24 (N = 24); pairs with n_eff < N: 14/21; significant after Holm: 11/21
+  [otsu k=4] n_eff over the 21 pairs: min 0, median 24, max 24 (N = 24); pairs with n_eff < N: 10/21; significant after Holm: 15/21
+  [otsu k=5] n_eff over the 21 pairs: min 13, median 24, max 24 (N = 24); pairs with n_eff < N: 10/21; significant after Holm: 12/21
+  [otsu overall] n_eff over the 21 pairs: min 13, median 24, max 24 (N = 24); pairs with n_eff < N: 8/21; significant after Holm: 17/21
+  [kapur k=2] n_eff over the 21 pairs: min 0, median 1, max 24 (N = 24); pairs with n_eff < N: 15/21; significant after Holm: 6/21
+  [kapur k=3] n_eff over the 21 pairs: min 1, median 23, max 24 (N = 24); pairs with n_eff < N: 15/21; significant after Holm: 9/21
+  [kapur k=4] n_eff over the 21 pairs: min 1, median 24, max 24 (N = 24); pairs with n_eff < N: 10/21; significant after Holm: 14/21
+  [kapur k=5] n_eff over the 21 pairs: min 16, median 24, max 24 (N = 24); pairs with n_eff < N: 9/21; significant after Holm: 12/21
+  [kapur overall] n_eff over the 21 pairs: min 19, median 24, max 24 (N = 24); pairs with n_eff < N: 7/21; significant after Holm: 8/21
+  Overall: 114 of 210 tests lost at least one image to a zero difference; 59 had n_eff < 10, where the smallest attainable exact p (2/2^n_eff) is above 0.05/21, Holm's threshold for the FIRST rejection in a family.
+  Significant pairs (Holm, 0.05), all conditions: 110 of 210
+     otsu k=2               random_search vs hill_climber: p_holm = 0.0004, r = +1.00 (smaller gaps: hill_climber), n_eff = 23
+     otsu k=2               random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     otsu k=2               random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     otsu k=2               random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     otsu k=2               random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     otsu k=2               random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     otsu k=3               random_search vs hill_climber: p_holm = 0.0011, r = +0.84 (smaller gaps: hill_climber), n_eff = 24
+     otsu k=3               random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     otsu k=3               random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     otsu k=3               random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     otsu k=3               random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     otsu k=3               random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     otsu k=3               hill_climber vs ga: p_holm = 0.0247, r = -0.69 (smaller gaps: hill_climber), n_eff = 24
+     otsu k=3               sa vs ga: p_holm = 0.0006, r = -1.00 (smaller gaps: sa), n_eff = 22
+     otsu k=3               pso vs ga: p_holm = 0.0006, r = -1.00 (smaller gaps: pso), n_eff = 22
+     otsu k=3               ga vs de: p_holm = 0.0006, r = +1.00 (smaller gaps: de), n_eff = 22
+     otsu k=3               ga vs gwo: p_holm = 0.0006, r = +1.00 (smaller gaps: gwo), n_eff = 22
+     otsu k=4               random_search vs hill_climber: p_holm = 0.0011, r = +0.84 (smaller gaps: hill_climber), n_eff = 24
+     otsu k=4               random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     otsu k=4               random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     otsu k=4               random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     otsu k=4               random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     otsu k=4               random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     otsu k=4               hill_climber vs sa: p_holm = 0.0209, r = +0.88 (smaller gaps: sa), n_eff = 15
+     otsu k=4               hill_climber vs pso: p_holm = 0.0162, r = +1.00 (smaller gaps: pso), n_eff = 13
+     otsu k=4               hill_climber vs ga: p_holm = 0.0202, r = -0.69 (smaller gaps: hill_climber), n_eff = 24
+     otsu k=4               hill_climber vs de: p_holm = 0.0162, r = +1.00 (smaller gaps: de), n_eff = 13
+     otsu k=4               hill_climber vs gwo: p_holm = 0.0264, r = +0.85 (smaller gaps: gwo), n_eff = 15
+     otsu k=4               sa vs ga: p_holm = 0.0000, r = -1.00 (smaller gaps: sa), n_eff = 24
+     otsu k=4               pso vs ga: p_holm = 0.0000, r = -1.00 (smaller gaps: pso), n_eff = 24
+     otsu k=4               ga vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     otsu k=4               ga vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     otsu k=5               random_search vs hill_climber: p_holm = 0.0013, r = +0.84 (smaller gaps: hill_climber), n_eff = 24
+     otsu k=5               random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     otsu k=5               random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     otsu k=5               random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     otsu k=5               random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     otsu k=5               random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     otsu k=5               hill_climber vs ga: p_holm = 0.0225, r = -0.69 (smaller gaps: hill_climber), n_eff = 24
+     otsu k=5               sa vs pso: p_holm = 0.0166, r = +0.81 (smaller gaps: pso), n_eff = 20
+     otsu k=5               sa vs ga: p_holm = 0.0002, r = -0.91 (smaller gaps: sa), n_eff = 24
+     otsu k=5               pso vs ga: p_holm = 0.0007, r = -0.87 (smaller gaps: pso), n_eff = 24
+     otsu k=5               ga vs de: p_holm = 0.0048, r = +0.78 (smaller gaps: de), n_eff = 24
+     otsu k=5               ga vs gwo: p_holm = 0.0078, r = +0.75 (smaller gaps: gwo), n_eff = 24
+     otsu overall           random_search vs hill_climber: p_holm = 0.0011, r = +0.84 (smaller gaps: hill_climber), n_eff = 24
+     otsu overall           random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     otsu overall           random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     otsu overall           random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     otsu overall           random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     otsu overall           random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     otsu overall           hill_climber vs sa: p_holm = 0.0308, r = +0.67 (smaller gaps: sa), n_eff = 23
+     otsu overall           hill_climber vs pso: p_holm = 0.0154, r = +0.71 (smaller gaps: pso), n_eff = 24
+     otsu overall           hill_climber vs ga: p_holm = 0.0202, r = -0.69 (smaller gaps: hill_climber), n_eff = 24
+     otsu overall           hill_climber vs de: p_holm = 0.0202, r = +0.68 (smaller gaps: de), n_eff = 24
+     otsu overall           hill_climber vs gwo: p_holm = 0.0202, r = +0.71 (smaller gaps: gwo), n_eff = 23
+     otsu overall           sa vs pso: p_holm = 0.0154, r = +0.81 (smaller gaps: pso), n_eff = 20
+     otsu overall           sa vs ga: p_holm = 0.0000, r = -0.95 (smaller gaps: sa), n_eff = 24
+     otsu overall           pso vs ga: p_holm = 0.0002, r = -0.91 (smaller gaps: pso), n_eff = 24
+     otsu overall           pso vs gwo: p_holm = 0.0308, r = -0.78 (smaller gaps: pso), n_eff = 16
+     otsu overall           ga vs de: p_holm = 0.0007, r = +0.86 (smaller gaps: de), n_eff = 24
+     otsu overall           ga vs gwo: p_holm = 0.0007, r = +0.86 (smaller gaps: gwo), n_eff = 24
+     kapur k=2              random_search vs hill_climber: p_holm = 0.0000, r = +1.00 (smaller gaps: hill_climber), n_eff = 24
+     kapur k=2              random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     kapur k=2              random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     kapur k=2              random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     kapur k=2              random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     kapur k=2              random_search vs gwo: p_holm = 0.0009, r = +0.86 (smaller gaps: gwo), n_eff = 24
+     kapur k=3              random_search vs hill_climber: p_holm = 0.0000, r = +0.99 (smaller gaps: hill_climber), n_eff = 24
+     kapur k=3              random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     kapur k=3              random_search vs pso: p_holm = 0.0007, r = +0.87 (smaller gaps: pso), n_eff = 24
+     kapur k=3              random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     kapur k=3              random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     kapur k=3              random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     kapur k=3              sa vs ga: p_holm = 0.0066, r = -0.83 (smaller gaps: sa), n_eff = 23
+     kapur k=3              pso vs ga: p_holm = 0.0066, r = -0.83 (smaller gaps: pso), n_eff = 23
+     kapur k=3              ga vs de: p_holm = 0.0004, r = +1.00 (smaller gaps: de), n_eff = 23
+     kapur k=4              random_search vs hill_climber: p_holm = 0.0014, r = +0.84 (smaller gaps: hill_climber), n_eff = 24
+     kapur k=4              random_search vs sa: p_holm = 0.0014, r = +0.84 (smaller gaps: sa), n_eff = 24
+     kapur k=4              random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     kapur k=4              random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     kapur k=4              random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     kapur k=4              random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     kapur k=4              hill_climber vs pso: p_holm = 0.0456, r = +1.00 (smaller gaps: pso), n_eff = 10
+     kapur k=4              hill_climber vs de: p_holm = 0.0456, r = +1.00 (smaller gaps: de), n_eff = 10
+     kapur k=4              sa vs pso: p_holm = 0.0247, r = +0.92 (smaller gaps: pso), n_eff = 14
+     kapur k=4              sa vs ga: p_holm = 0.0247, r = -0.69 (smaller gaps: sa), n_eff = 24
+     kapur k=4              sa vs de: p_holm = 0.0177, r = +1.00 (smaller gaps: de), n_eff = 13
+     kapur k=4              pso vs ga: p_holm = 0.0000, r = -1.00 (smaller gaps: pso), n_eff = 24
+     kapur k=4              ga vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     kapur k=4              ga vs gwo: p_holm = 0.0074, r = +0.76 (smaller gaps: gwo), n_eff = 24
+     kapur k=5              random_search vs hill_climber: p_holm = 0.0014, r = +0.83 (smaller gaps: hill_climber), n_eff = 24
+     kapur k=5              random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     kapur k=5              random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     kapur k=5              random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     kapur k=5              random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     kapur k=5              random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     kapur k=5              sa vs ga: p_holm = 0.0011, r = -0.85 (smaller gaps: sa), n_eff = 24
+     kapur k=5              pso vs ga: p_holm = 0.0000, r = -1.00 (smaller gaps: pso), n_eff = 24
+     kapur k=5              pso vs de: p_holm = 0.0187, r = -0.77 (smaller gaps: pso), n_eff = 21
+     kapur k=5              pso vs gwo: p_holm = 0.0074, r = -0.85 (smaller gaps: pso), n_eff = 21
+     kapur k=5              ga vs de: p_holm = 0.0093, r = +0.74 (smaller gaps: de), n_eff = 24
+     kapur k=5              ga vs gwo: p_holm = 0.0010, r = +0.85 (smaller gaps: gwo), n_eff = 24
+     kapur overall          random_search vs hill_climber: p_holm = 0.0013, r = +0.84 (smaller gaps: hill_climber), n_eff = 24
+     kapur overall          random_search vs sa: p_holm = 0.0003, r = +0.90 (smaller gaps: sa), n_eff = 24
+     kapur overall          random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     kapur overall          random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     kapur overall          random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     kapur overall          random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     kapur overall          pso vs ga: p_holm = 0.0011, r = -0.85 (smaller gaps: pso), n_eff = 24
+     kapur overall          ga vs de: p_holm = 0.0002, r = +0.91 (smaller gaps: de), n_eff = 24
+
+[ART ANOVA, otsu]  response = median_rel_gap, block = image
+   C(algorithm)         F(6, 621) =   102.67, p = 1.43e-89
+   C(k)                 F(3, 621) =   281.72, p = 2.16e-115
+   C(algorithm):C(k)    F(18, 621) =    36.67, p = 2.77e-85
+
+[ART ANOVA, kapur]  response = median_rel_gap, block = image
+   C(algorithm)         F(6, 621) =    81.70, p = 3.27e-75
+   C(k)                 F(3, 621) =   161.34, p = 2.57e-77
+   C(algorithm):C(k)    F(18, 621) =    29.62, p = 1.33e-71
+
+--- Ranking stability: 8-image vs 24-image average ranks (Kendall's tau, K = 7) ---
+  otsu  k=2       tau = +1.00 (p = 0.009);  best on 8: sa, best on 24: sa
+  otsu  k=3       tau = +1.00 (p = 0.005);  best on 8: sa, best on 24: sa
+  otsu  k=4       tau = +1.00 (p = 0.002);  best on 8: pso, best on 24: pso
+  otsu  k=5       tau = +0.90 (p = 0.003);  best on 8: pso, best on 24: pso
+  otsu  k=overall tau = +1.00 (p = 0.000);  best on 8: pso, best on 24: pso
+  kapur k=2       tau = +0.63 (p = 0.098);  best on 8: hill_climber, best on 24: sa
+  kapur k=3       tau = +0.81 (p = 0.011);  best on 8: de, best on 24: de
+  kapur k=4       tau = +0.78 (p = 0.015);  best on 8: pso, best on 24: de
+  kapur k=5       tau = +0.98 (p = 0.002);  best on 8: pso, best on 24: pso
+  kapur k=overall tau = +0.90 (p = 0.003);  best on 8: pso, best on 24: pso
+
+Saved results/ext24_report.txt, ext24_cell_summary.csv, ext24_descriptive.csv, ext24_hit_by_k.csv, ext24_friedman.csv, ext24_wilcoxon.csv, ext24_art.csv, ext24_tau.csv

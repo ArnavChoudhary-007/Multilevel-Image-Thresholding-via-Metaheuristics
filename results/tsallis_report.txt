@@ -1,0 +1,161 @@
+==============================================================================
+EXTENSION PART C - NON-SEPARABLE TSALLIS CRITERION (q = 0.7), UNCHANGED PROTOCOL
+==============================================================================
+runs: 20,160 (expected 20,160); images: 24; duplicates: 0
+Exact references: 10,080 runs (k = 2, 3); best-known references: 10,080 runs (k = 4, 5) - 'best known' = best score of any of the 210 runs of that (image, k) cell, NOT proven optimal.
+Runs scoring ABOVE the exact optimum (would mean a bug): 0
+
+Hit rate by k (k = 2, 3: found the EXACT optimum; k = 4, 5: matched the BEST KNOWN):
+k                 2    3    4    5
+algorithm                         
+random_search   17%   1%   0%   0%
+hill_climber    85%  80%  57%  45%
+sa              99%  86%  72%  54%
+pso            100%  87%  86%  77%
+ga              98%  33%   5%   0%
+de             100%  94%  91%  38%
+gwo            100%  82%  55%  31%
+
+Median relative gap by k (same references):
+k                     2         3         4         5
+algorithm                                            
+random_search  2.41e-04  5.17e-03  2.18e-02  5.41e-02
+hill_climber   0.00e+00  0.00e+00  0.00e+00  4.40e-05
+sa             0.00e+00  0.00e+00  0.00e+00  0.00e+00
+pso            0.00e+00  0.00e+00  0.00e+00  0.00e+00
+ga             0.00e+00  8.02e-05  8.05e-04  4.16e-03
+de             0.00e+00  0.00e+00  0.00e+00  1.20e-03
+gwo            0.00e+00  0.00e+00  0.00e+00  2.55e-04
+
+For comparison, exact-hit rates of the SAME algorithms on the SAME 24 images for the separable criteria (Part A):
+objective     kapur       otsu      
+k                 2    3     2     3
+algorithm                           
+random_search   17%   0%   18%    1%
+hill_climber    90%  80%   94%   90%
+sa              98%  77%   99%   93%
+pso             99%  94%  100%   98%
+ga              96%  31%   98%   33%
+de             100%  97%  100%  100%
+gwo             96%  81%  100%   97%
+
+--- Cost: one optimiser run vs one exhaustive solve (k = 2, 3) ---
+Exhaustive search: single process; optimiser runs: 4 worker processes in parallel, so run times may be inflated by contention (which works AGAINST the optimisers here).
+
+  k = 2: exhaustive solve median 0.016 s (range 0.007-0.145 s over 24 images)
+     random_search  median run    92.0 ms; exhaustive / run =     0.2x (median over images); run faster on 1/24 images
+     hill_climber   median run    21.0 ms; exhaustive / run =     0.8x (median over images); run faster on 9/24 images
+     sa             median run    86.9 ms; exhaustive / run =     0.2x (median over images); run faster on 1/24 images
+     pso            median run    58.3 ms; exhaustive / run =     0.3x (median over images); run faster on 1/24 images
+     ga             median run   351.7 ms; exhaustive / run =     0.0x (median over images); run faster on 0/24 images
+     de             median run   247.2 ms; exhaustive / run =     0.1x (median over images); run faster on 0/24 images
+     gwo            median run   229.8 ms; exhaustive / run =     0.1x (median over images); run faster on 0/24 images
+
+  k = 3: exhaustive solve median 0.439 s (range 0.119-0.476 s over 24 images)
+     random_search  median run    89.1 ms; exhaustive / run =     4.1x (median over images); run faster on 24/24 images
+     hill_climber   median run    25.6 ms; exhaustive / run =    15.5x (median over images); run faster on 24/24 images
+     sa             median run   101.3 ms; exhaustive / run =     3.9x (median over images); run faster on 24/24 images
+     pso            median run    64.6 ms; exhaustive / run =     6.2x (median over images); run faster on 24/24 images
+     ga             median run   371.0 ms; exhaustive / run =     1.2x (median over images); run faster on 15/24 images
+     de             median run   248.7 ms; exhaustive / run =     1.7x (median over images); run faster on 20/24 images
+     gwo            median run   229.4 ms; exhaustive / run =     1.7x (median over images); run faster on 20/24 images
+
+--- Primary analysis: per k, 24 image blocks x 7 algorithms ---
+Response: per-cell MEDIAN relative gap (k = 2, 3 vs exact; k = 4, 5 vs best known).
+
+[tsallis k=2]  Friedman chi2 = 128.99, p = 2.10e-25, Kendall's W = 0.90;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 3.44, sa 3.44, de 3.44, ga 3.44, gwo 3.44, hill_climber 3.88, random_search 6.94
+   significantly worse than the best (pso) by Nemenyi: random_search
+   Wilcoxon + Holm: 6 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[tsallis k=3]  Friedman chi2 = 102.97, p = 6.01e-20, Kendall's W = 0.72;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): de 2.88, pso 3.02, sa 3.17, gwo 3.25, hill_climber 3.52, ga 5.25, random_search 6.92
+   significantly worse than the best (de) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 8 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[tsallis k=4]  Friedman chi2 = 116.78, p = 7.71e-23, Kendall's W = 0.81;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): de 2.44, pso 2.56, sa 2.79, gwo 3.42, hill_climber 4.08, ga 5.75, random_search 6.96
+   significantly worse than the best (de) by Nemenyi: ga, random_search
+   Wilcoxon + Holm: 13 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[tsallis k=5]  Friedman chi2 = 100.75, p = 1.75e-19, Kendall's W = 0.70;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 1.67, sa 2.77, gwo 3.44, hill_climber 3.54, de 4.08, ga 5.62, random_search 6.88
+   significantly worse than the best (pso) by Nemenyi: hill_climber, de, ga, random_search
+   Wilcoxon + Holm: 14 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+[tsallis overall]  Friedman chi2 = 95.90, p = 1.79e-18, Kendall's W = 0.67;  Nemenyi CD = 1.84 (q = 2.948, N = 24, K = 7)
+   average ranks (1 = smallest gap): pso 1.67, sa 2.77, gwo 3.50, hill_climber 3.75, de 3.94, ga 5.50, random_search 6.88
+   significantly worse than the best (pso) by Nemenyi: hill_climber, de, ga, random_search
+   Wilcoxon + Holm: 11 of 21 pairs significant at 0.05 (smallest raw p = 0.0000, smallest Holm p = 0.0000)
+
+--- Effective N of the Wilcoxon tests (Tsallis) ---
+A pair of images with zero difference is dropped by the signed-rank test,
+so the usable N is n_eff = N - (number of zero differences).
+  [tsallis k=2] n_eff over the 21 pairs: min 0, median 3, max 24 (N = 24); pairs with n_eff < N: 16/21; significant after Holm: 6/21
+  [tsallis k=3] n_eff over the 21 pairs: min 2, median 21, max 24 (N = 24); pairs with n_eff < N: 15/21; significant after Holm: 8/21
+  [tsallis k=4] n_eff over the 21 pairs: min 2, median 24, max 24 (N = 24); pairs with n_eff < N: 10/21; significant after Holm: 13/21
+  [tsallis k=5] n_eff over the 21 pairs: min 10, median 24, max 24 (N = 24); pairs with n_eff < N: 10/21; significant after Holm: 14/21
+  [tsallis overall] n_eff over the 21 pairs: min 11, median 24, max 24 (N = 24); pairs with n_eff < N: 10/21; significant after Holm: 11/21
+  Overall: 61 of 105 tests lost at least one image to a zero difference; 30 had n_eff < 10, where the smallest attainable exact p (2/2^n_eff) is above 0.05/21, Holm's threshold for the FIRST rejection in a family.
+  Significant pairs (Holm, 0.05), all conditions: 52 of 105
+     tsallis k=2            random_search vs hill_climber: p_holm = 0.0075, r = +0.83 (smaller gaps: hill_climber), n_eff = 23
+     tsallis k=2            random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     tsallis k=2            random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     tsallis k=2            random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     tsallis k=2            random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     tsallis k=2            random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     tsallis k=3            random_search vs hill_climber: p_holm = 0.0006, r = +0.87 (smaller gaps: hill_climber), n_eff = 24
+     tsallis k=3            random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     tsallis k=3            random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     tsallis k=3            random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     tsallis k=3            random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     tsallis k=3            random_search vs gwo: p_holm = 0.0000, r = +0.99 (smaller gaps: gwo), n_eff = 24
+     tsallis k=3            pso vs ga: p_holm = 0.0143, r = -0.82 (smaller gaps: pso), n_eff = 21
+     tsallis k=3            ga vs de: p_holm = 0.0092, r = +0.83 (smaller gaps: de), n_eff = 22
+     tsallis k=4            random_search vs hill_climber: p_holm = 0.0012, r = +0.84 (smaller gaps: hill_climber), n_eff = 24
+     tsallis k=4            random_search vs sa: p_holm = 0.0000, r = +1.00 (smaller gaps: sa), n_eff = 24
+     tsallis k=4            random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     tsallis k=4            random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     tsallis k=4            random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     tsallis k=4            random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     tsallis k=4            hill_climber vs pso: p_holm = 0.0244, r = +1.00 (smaller gaps: pso), n_eff = 12
+     tsallis k=4            hill_climber vs de: p_holm = 0.0244, r = +1.00 (smaller gaps: de), n_eff = 12
+     tsallis k=4            sa vs ga: p_holm = 0.0000, r = -0.98 (smaller gaps: sa), n_eff = 24
+     tsallis k=4            pso vs ga: p_holm = 0.0000, r = -1.00 (smaller gaps: pso), n_eff = 24
+     tsallis k=4            ga vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     tsallis k=4            ga vs gwo: p_holm = 0.0012, r = +0.84 (smaller gaps: gwo), n_eff = 24
+     tsallis k=4            de vs gwo: p_holm = 0.0456, r = -1.00 (smaller gaps: de), n_eff = 10
+     tsallis k=5            random_search vs hill_climber: p_holm = 0.0013, r = +0.83 (smaller gaps: hill_climber), n_eff = 24
+     tsallis k=5            random_search vs sa: p_holm = 0.0007, r = +0.87 (smaller gaps: sa), n_eff = 24
+     tsallis k=5            random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     tsallis k=5            random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     tsallis k=5            random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     tsallis k=5            random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     tsallis k=5            hill_climber vs pso: p_holm = 0.0456, r = +0.79 (smaller gaps: pso), n_eff = 16
+     tsallis k=5            sa vs pso: p_holm = 0.0456, r = +1.00 (smaller gaps: pso), n_eff = 10
+     tsallis k=5            sa vs ga: p_holm = 0.0200, r = -0.69 (smaller gaps: sa), n_eff = 24
+     tsallis k=5            pso vs ga: p_holm = 0.0000, r = -1.00 (smaller gaps: pso), n_eff = 24
+     tsallis k=5            pso vs de: p_holm = 0.0012, r = -1.00 (smaller gaps: pso), n_eff = 20
+     tsallis k=5            pso vs gwo: p_holm = 0.0012, r = -1.00 (smaller gaps: pso), n_eff = 20
+     tsallis k=5            ga vs de: p_holm = 0.0196, r = +0.70 (smaller gaps: de), n_eff = 24
+     tsallis k=5            ga vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     tsallis overall        random_search vs hill_climber: p_holm = 0.0013, r = +0.83 (smaller gaps: hill_climber), n_eff = 24
+     tsallis overall        random_search vs sa: p_holm = 0.0003, r = +0.89 (smaller gaps: sa), n_eff = 24
+     tsallis overall        random_search vs pso: p_holm = 0.0000, r = +1.00 (smaller gaps: pso), n_eff = 24
+     tsallis overall        random_search vs ga: p_holm = 0.0000, r = +1.00 (smaller gaps: ga), n_eff = 24
+     tsallis overall        random_search vs de: p_holm = 0.0000, r = +1.00 (smaller gaps: de), n_eff = 24
+     tsallis overall        random_search vs gwo: p_holm = 0.0000, r = +1.00 (smaller gaps: gwo), n_eff = 24
+     tsallis overall        pso vs ga: p_holm = 0.0000, r = -1.00 (smaller gaps: pso), n_eff = 24
+     tsallis overall        pso vs de: p_holm = 0.0012, r = -1.00 (smaller gaps: pso), n_eff = 20
+     tsallis overall        pso vs gwo: p_holm = 0.0008, r = -1.00 (smaller gaps: pso), n_eff = 21
+     tsallis overall        ga vs de: p_holm = 0.0004, r = +0.89 (smaller gaps: de), n_eff = 24
+     tsallis overall        ga vs gwo: p_holm = 0.0093, r = +0.74 (smaller gaps: gwo), n_eff = 24
+
+[ART ANOVA, tsallis]  response = median_rel_gap, block = image
+   C(algorithm)         F(6, 621) =   112.84, p = 5.04e-96
+   C(k)                 F(3, 621) =   206.65, p = 6.19e-93
+   C(algorithm):C(k)    F(18, 621) =    46.32, p = 4.68e-102
+
+Note: the ART pools k = 2, 3 (exact reference) with k = 4, 5 (best known); the algorithm effect is the robust part, the k effect partly reflects the reference.
+
+Saved results/tsallis_report.txt, tsallis_runs_scored.csv, tsallis_cell_summary.csv, tsallis_hit_by_k.csv, tsallis_time_vs_exhaustive.csv, tsallis_friedman.csv, tsallis_wilcoxon.csv, tsallis_art.csv

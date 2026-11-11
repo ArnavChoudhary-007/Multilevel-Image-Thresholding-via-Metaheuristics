@@ -34,6 +34,13 @@ All seven are written by hand rather than taken from mealpy, so that
 All parameters are in PARAMS below, fixed BEFORE any experiment was run.
 They must not be tuned by looking at results.
 
+Extensions (Part B): every optimiser also works for histograms with L > 256
+grey levels, searching thresholds in [1, L-2]. Distance-based settings scale
+with the range: PSO's vmax and GA's mutation sd were already fractions of
+the range, DE and GWO move by differences of population members, and SA's
+step sd becomes 8 * L / 256. The hill climber keeps its +-1 neighbourhood,
+because that IS the method; at large L it is expected to stall.
+
 Usage:
     from thresholding import load_grey, histogram
     from optimisers import make_objective, optimise
@@ -96,7 +103,7 @@ class BudgetExhausted(Exception):
     """Raised by CountedObjective when the evaluation budget is used up."""
 
 
-def make_objective(p, objective="otsu"):
+def make_objective(p, objective="otsu", **kwargs):
     """
     Fast scalar objective f(t) for one histogram, built on class_tables.
 
@@ -133,9 +140,32 @@ def make_objective(p, objective="otsu"):
                 total += math.log(w) - (T[hi + 1] - T[lo + 1]) / w
                 lo = hi
             return total
+    elif objective == "tsallis":
+        # Non-separable criterion (Part C). Every class entropy S_c is
+        # precomputed once into an L x L table (L = 256 here), so one
+        # evaluation is k+1 lookups plus a sum and a product - the same
+        # O(k) cost per evaluation as Otsu and Kapur.
+        from thresholding import tsallis_table
+        q_val = kwargs.get("q", 0.7)
+        table = tsallis_table(p, q=q_val).tolist()   # plain floats: fast lookups
+        one_minus_q = 1.0 - q_val
+
+        def f(t):
+            lo = 0
+            total, prod = 0.0, 1.0
+            for hi in tuple(t) + (top,):
+                s_c = table[lo][hi]
+                if s_c == -math.inf:
+                    return -math.inf
+                total += s_c
+                prod *= s_c
+                lo = hi + 1
+            return total + one_minus_q * prod
+        f.q = q_val
     else:
-        raise ValueError("objective must be 'otsu' or 'kapur'")
+        raise ValueError("objective must be 'otsu', 'kapur' or 'tsallis'")
     f.objective = objective
+    f.L = len(p)          # optimise() reads the search range [1, L-2] from this
     return f
 
 
@@ -170,58 +200,58 @@ class CountedObjective:
 # Representation helpers
 # ----------------------------------------------------------------------
 
-def repair(x):
+def repair(x, low=LOW, high=HIGH):
     """
     Map any real vector to a valid threshold vector:
-    round -> clip to [1, 254] -> sort -> push apart so strictly increasing.
+    round -> clip to [low, high] -> sort -> push apart so strictly increasing.
     Continuous methods (PSO, GA, DE, GWO) search in R^k and are evaluated
-    at repair(x); the search itself never leaves the box [1, 254]^k.
+    at repair(x); the search itself never leaves the box [low, high]^k.
     """
-    t = np.clip(np.rint(np.asarray(x, dtype=float)), LOW, HIGH).astype(int)
+    t = np.clip(np.rint(np.asarray(x, dtype=float)), low, high).astype(int)
     t.sort()
     k = t.size
     for i in range(1, k):                     # push up to remove ties
         if t[i] <= t[i - 1]:
             t[i] = t[i - 1] + 1
-    if t[-1] > HIGH:                          # ...then down if we overflowed
-        t[-1] = HIGH
+    if t[-1] > high:                          # ...then down if we overflowed
+        t[-1] = high
         for i in range(k - 2, -1, -1):
             if t[i] >= t[i + 1]:
                 t[i] = t[i + 1] - 1
     return tuple(int(v) for v in t)
 
 
-def random_vector(rng, k):
-    """Uniform over all C(254, k) admissible vectors."""
-    return tuple(sorted(int(v) for v in rng.choice(np.arange(LOW, HIGH + 1), size=k,
+def random_vector(rng, k, low=LOW, high=HIGH):
+    """Uniform over all C(high - low + 1, k) admissible vectors."""
+    return tuple(sorted(int(v) for v in rng.choice(np.arange(low, high + 1), size=k,
                                                      replace=False)))
 
 
-def random_population(rng, n, k):
-    return rng.uniform(LOW, HIGH, size=(n, k))
+def random_population(rng, n, k, low=LOW, high=HIGH):
+    return rng.uniform(low, high, size=(n, k))
 
 
 # ----------------------------------------------------------------------
 # 1. Random search
 # ----------------------------------------------------------------------
 
-def random_search(f, k, rng, budget):
+def random_search(f, k, rng, budget, low=LOW, high=HIGH):
     while True:
-        f(random_vector(rng, k))
+        f(random_vector(rng, k, low=low, high=high))
 
 
 # ----------------------------------------------------------------------
 # 2. First-improvement hill climber with random restarts
 # ----------------------------------------------------------------------
 
-def hill_climber(f, k, rng, budget):
+def hill_climber(f, k, rng, budget, low=LOW, high=HIGH):
     """
     Neighbourhood: move ONE threshold by +-1 (2k neighbours). Neighbours
     are tried in random order and the FIRST better one is taken. At a local
     optimum (no better neighbour) restart from a fresh random vector, so
     the remaining budget is not wasted.
     """
-    x = random_vector(rng, k)
+    x = random_vector(rng, k, low=low, high=high)
     fx = f(x)
     while True:
         moves = [(i, d) for i in range(k) for d in (-1, 1)]
@@ -231,8 +261,8 @@ def hill_climber(f, k, rng, budget):
             i, d = moves[m]
             y = list(x)
             y[i] += d
-            lo = y[i - 1] if i > 0 else LOW - 1
-            hi = y[i + 1] if i < k - 1 else HIGH + 1
+            lo = y[i - 1] if i > 0 else low - 1
+            hi = y[i + 1] if i < k - 1 else high + 1
             if not lo < y[i] < hi:
                 continue                      # invalid: no evaluation spent
             fy = f(y)
@@ -240,7 +270,7 @@ def hill_climber(f, k, rng, budget):
                 x, fx, improved = tuple(y), fy, True
                 break
         if not improved:
-            x = random_vector(rng, k)
+            x = random_vector(rng, k, low=low, high=high)
             fx = f(x)
 
 
@@ -248,7 +278,7 @@ def hill_climber(f, k, rng, budget):
 # 3. Simulated Annealing
 # ----------------------------------------------------------------------
 
-def sa(f, k, rng, budget, log=None):
+def sa(f, k, rng, budget, log=None, low=LOW, high=HIGH, L=256):
     """
     Metropolis rule: a move that changes the score by delta is accepted
     with probability  min(1, exp(delta / T)). Improvements are always
@@ -264,30 +294,31 @@ def sa(f, k, rng, budget, log=None):
     guaranteed convergence - the paper says so explicitly.
 
     Proposal: pick one threshold at random, move it by a rounded Gaussian
-    step (never 0), then repair.
+    step (never 0), then repair. Step SD scales with L (Part B).
 
     If `log` is a list, one tuple per proposal is appended:
         (evaluation_number, T, current_score, proposed_score, accepted)
     """
     prm = PARAMS["sa"]
+    step_sd = prm["step_sd"] * (L / 256.0)
 
     def propose(x):
         y = list(x)
         i = rng.integers(k)
         step = 0
         while step == 0:
-            step = int(np.rint(rng.normal(0.0, prm["step_sd"])))
+            step = int(np.rint(rng.normal(0.0, step_sd)))
         y[i] += step
-        return repair(y)
+        return repair(y, low=low, high=high)
 
     # start from a FEASIBLE vector (no empty class). On images with a narrow
     # grey-level range (e.g. 'clock' uses only levels 99-247) a random start
     # can have an empty class; every neighbour of it is then empty too, so the
     # Metropolis rule could never leave. Each retry costs one evaluation.
-    x = random_vector(rng, k)
+    x = random_vector(rng, k, low=low, high=high)
     fx = f(x)
     while not math.isfinite(fx):
-        x = random_vector(rng, k)
+        x = random_vector(rng, k, low=low, high=high)
         fx = f(x)
 
     # calibration: look at a few proposals from the start point (they cost
@@ -324,21 +355,21 @@ def sa(f, k, rng, budget, log=None):
 # 4. Particle Swarm Optimisation
 # ----------------------------------------------------------------------
 
-def pso(f, k, rng, budget):
+def pso(f, k, rng, budget, low=LOW, high=HIGH):
     """
     Each particle i has position x_i and velocity v_i. Per iteration:
         v_i <- w v_i + c1 r1 (pbest_i - x_i) + c2 r2 (gbest - x_i)
         x_i <- x_i + v_i
     inertia (w) + pull to own best (cognitive) + pull to swarm best (social).
-    Positions stay inside [1, 254]; a particle hitting a wall stops there.
+    Positions stay inside [low, high]; a particle hitting a wall stops there.
     """
     prm = PARAMS["pso"]
     n = prm["swarm"]
-    vmax = prm["vmax_frac"] * (HIGH - LOW)
-    x = random_population(rng, n, k)
+    vmax = prm["vmax_frac"] * (high - low)
+    x = random_population(rng, n, k, low=low, high=high)
     v = rng.uniform(-vmax, vmax, size=(n, k))
     pbest = x.copy()
-    pbest_f = np.array([f(repair(xi)) for xi in x])
+    pbest_f = np.array([f(repair(xi, low=low, high=high)) for xi in x])
     g = int(np.argmax(pbest_f))
     while True:
         r1 = rng.random((n, k))
@@ -348,11 +379,11 @@ def pso(f, k, rng, budget):
              + prm["c2"] * r2 * (pbest[g] - x))
         v = np.clip(v, -vmax, vmax)
         x = x + v
-        hit = (x < LOW) | (x > HIGH)
-        x = np.clip(x, LOW, HIGH)
+        hit = (x < low) | (x > high)
+        x = np.clip(x, low, high)
         v[hit] = 0.0
         for i in range(n):
-            fi = f(repair(x[i]))
+            fi = f(repair(x[i], low=low, high=high))
             if fi > pbest_f[i]:
                 pbest[i], pbest_f[i] = x[i], fi
                 if fi > pbest_f[g]:
@@ -363,7 +394,7 @@ def pso(f, k, rng, budget):
 # 5. Genetic Algorithm (real-coded)
 # ----------------------------------------------------------------------
 
-def ga(f, k, rng, budget):
+def ga(f, k, rng, budget, low=LOW, high=HIGH):
     """
     Generational GA: tournament selection -> BLX-alpha crossover ->
     Gaussian mutation (each gene with prob 1/k) -> keep the best `elites`
@@ -371,9 +402,9 @@ def ga(f, k, rng, budget):
     """
     prm = PARAMS["ga"]
     n = prm["pop"]
-    span = HIGH - LOW
-    pop = random_population(rng, n, k)
-    fit = np.array([f(repair(ind)) for ind in pop])
+    span = high - low
+    pop = random_population(rng, n, k, low=low, high=high)
+    fit = np.array([f(repair(ind, low=low, high=high)) for ind in pop])
 
     def select():
         idx = rng.integers(n, size=prm["tournament"])
@@ -393,9 +424,9 @@ def ga(f, k, rng, budget):
                 c = a.copy()
             mutate = rng.random(k) < 1.0 / k
             c = c + mutate * rng.normal(0.0, prm["mut_sd_frac"] * span, size=k)
-            c = np.clip(c, LOW, HIGH)
+            c = np.clip(c, low, high)
             children.append(c)
-            child_fit.append(f(repair(c)))
+            child_fit.append(f(repair(c, low=low, high=high)))
         pop, fit = np.array(children), np.array(child_fit)
 
 
@@ -403,7 +434,7 @@ def ga(f, k, rng, budget):
 # 6. Differential Evolution, DE/rand/1/bin
 # ----------------------------------------------------------------------
 
-def de(f, k, rng, budget):
+def de(f, k, rng, budget, low=LOW, high=HIGH):
     """
     For each target x_i: mutant v = x_r1 + F (x_r2 - x_r3) with r1, r2, r3
     distinct and != i; binomial crossover with rate CR (at least one gene
@@ -411,8 +442,8 @@ def de(f, k, rng, budget):
     """
     prm = PARAMS["de"]
     n = prm["pop"]
-    pop = random_population(rng, n, k)
-    fit = np.array([f(repair(ind)) for ind in pop])
+    pop = random_population(rng, n, k, low=low, high=high)
+    fit = np.array([f(repair(ind, low=low, high=high)) for ind in pop])
     while True:
         for i in range(n):
             choices = [j for j in range(n) if j != i]
@@ -420,8 +451,8 @@ def de(f, k, rng, budget):
             mutant = pop[r1] + prm["F"] * (pop[r2] - pop[r3])
             cross = rng.random(k) < prm["CR"]
             cross[rng.integers(k)] = True
-            trial = np.clip(np.where(cross, mutant, pop[i]), LOW, HIGH)
-            ft = f(repair(trial))
+            trial = np.clip(np.where(cross, mutant, pop[i]), low, high)
+            ft = f(repair(trial, low=low, high=high))
             if ft >= fit[i]:
                 pop[i], fit[i] = trial, ft
 
@@ -430,7 +461,7 @@ def de(f, k, rng, budget):
 # 7. Grey Wolf Optimiser
 # ----------------------------------------------------------------------
 
-def gwo(f, k, rng, budget):
+def gwo(f, k, rng, budget, low=LOW, high=HIGH):
     """
     The three best wolves (alpha, beta, delta) lead. Every wolf moves to
     the average of three points, one pulled toward each leader:
@@ -439,8 +470,8 @@ def gwo(f, k, rng, budget):
     shifting the pack from exploring (|A| > 1) to closing in (|A| < 1).
     """
     n = PARAMS["gwo"]["pop"]
-    pop = random_population(rng, n, k)
-    fit = np.array([f(repair(ind)) for ind in pop])
+    pop = random_population(rng, n, k, low=low, high=high)
+    fit = np.array([f(repair(ind, low=low, high=high)) for ind in pop])
     while True:
         order = np.argsort(-fit)
         leaders = [pop[order[0]].copy(), pop[order[1]].copy(), pop[order[2]].copy()]
@@ -451,8 +482,8 @@ def gwo(f, k, rng, budget):
                 A = 2.0 * a * rng.random(k) - a
                 C = 2.0 * rng.random(k)
                 new += leader - A * np.abs(C * leader - pop[i])
-            pop[i] = np.clip(new / 3.0, LOW, HIGH)
-            fit[i] = f(repair(pop[i]))
+            pop[i] = np.clip(new / 3.0, low, high)
+            fit[i] = f(repair(pop[i], low=low, high=high))
 
 
 # ----------------------------------------------------------------------
@@ -470,7 +501,7 @@ _REGISTRY = {
 }
 
 
-def optimise(algorithm, objective, k, budget, seed, sa_log=None):
+def optimise(algorithm, objective, k, budget, seed, sa_log=None, L=None):
     """
     Run one optimiser for exactly `budget` evaluations.
 
@@ -479,6 +510,11 @@ def optimise(algorithm, objective, k, budget, seed, sa_log=None):
     seed      : integer; the same seed always reproduces the same run
     sa_log    : optional list; if given and algorithm == "sa", every
                 proposal is recorded into it (see sa()).
+    L         : number of grey levels; thresholds are searched in [1, L-2].
+                Default: taken from the objective (make_objective sets f.L),
+                else 256. At L = 256 every run is bit-identical to the
+                original 8-bit code (test_extensions.py re-runs rows of
+                results/runs.csv to prove it).
 
     Returns (thresholds, score, history), where history[i] is the best
     score after i+1 evaluations (len(history) == budget).
@@ -486,12 +522,15 @@ def optimise(algorithm, objective, k, budget, seed, sa_log=None):
     if algorithm not in _REGISTRY:
         raise ValueError(f"unknown algorithm {algorithm!r}; choose from {ALGORITHMS}")
     rng = np.random.default_rng(seed)
+    if L is None:
+        L = getattr(objective, "L", 256)
     f = CountedObjective(objective, budget)
+    low, high = 1, L - 2
     try:
         if algorithm == "sa":
-            sa(f, k, rng, budget, log=sa_log)
+            sa(f, k, rng, budget, log=sa_log, low=low, high=high, L=L)
         else:
-            _REGISTRY[algorithm](f, k, rng, budget)
+            _REGISTRY[algorithm](f, k, rng, budget, low=low, high=high)
     except BudgetExhausted:
         pass
     return f.best_t, f.best_score, f.history

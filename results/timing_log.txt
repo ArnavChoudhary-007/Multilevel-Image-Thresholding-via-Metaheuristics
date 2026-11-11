@@ -1,0 +1,31 @@
+Timing on 'camera' - this takes a minute or two...
+
+  brute force k=1: 0.1 ms
+  brute force k=2: 7.6 ms
+  brute force k=3: 1.2 s
+  DP k=1: Otsu 1.6 ms, Kapur 1.9 ms
+  DP k=2: Otsu 2.1 ms, Kapur 1.7 ms
+  DP k=3: Otsu 1.7 ms, Kapur 1.8 ms
+  DP k=4: Otsu 1.9 ms, Kapur 2.1 ms
+  DP k=5: Otsu 2.1 ms, Kapur 2.4 ms
+  DP k=6: Otsu 3.6 ms, Kapur 2.3 ms
+  DP k=10: Otsu 3.0 ms, Kapur 3.1 ms
+
+====================================================================================================
+  k             C(254,k)           Exhaustive      DP Otsu     DP Kapur   Otsu thresholds
+----------------------------------------------------------------------------------------------------
+  1                  254           0.1 ms (m)    1.6 ms (m)    1.9 ms (m)   (102,)
+  2               32,131           7.6 ms (m)    2.1 ms (m)    1.7 ms (m)   (87, 176)
+  3            2,699,004            1.2 s (m)    1.7 ms (m)    1.8 ms (m)   (69, 134, 180)
+  4          169,362,501         ≈ 75.2 s (e)    1.9 ms (m)    2.1 ms (m)   (46, 100, 145, 182)
+  5        8,468,125,050         ≈ 63 min (e)    2.1 ms (m)    2.4 ms (m)   (19, 55, 107, 147, 182)
+  6      351,427,189,575           ≈ 43 h (e)    3.6 ms (m)    2.3 ms (m)   (19, 54, 106, 146, 178, 205)
+ 10 257,427,327,765,082,475    ≈ 3,621 years (e)    3.0 ms (m)    3.1 ms (m)   (18, 40, 71, 106, 132, 149, 163, 184, 204, 224)
+====================================================================================================
+
+Footnote text for Table 1:
+  (m) = measured, median of repeated runs (largest IQR = 69% of the median); (e) = extrapolated via T_k = C(254,k)·c, c = 444 ns fitted at k = 3, an optimistic lower bound.
+  Environment: x86_64, 8.4 GB RAM, Linux 6.18.44-fc-v114, Python 3.11.15, NumPy 2.4.4, scikit-image 0.26.0, OpenCV 4.13.0 - single-threaded; timings bound feasibility, not optimality.
+
+Saved results/timing.csv
+(Python executable: /usr/bin/python3)

@@ -28,6 +28,9 @@ Run:
     python run_experiments.py --smoke          tiny grid, ~1 min, results/smoke_runs.csv
     python run_experiments.py                  full grid -> results/runs.csv
     python run_experiments.py --workers 4      same, using 4 CPU cores
+    python run_experiments.py --extended --workers 4
+                                               extension Part A: same grid on the
+                                               16 new images -> results/runs_extended.csv
 """
 
 import argparse
@@ -37,7 +40,7 @@ import time
 from multiprocessing import Pool
 from pathlib import Path
 
-from thresholding import load_grey, histogram, dp_multilevel
+from thresholding import BENCHMARK_16_NEW, load_grey, histogram, dp_multilevel
 from optimisers import ALGORITHMS, make_objective, optimise
 
 RESULTS = Path("results")
@@ -51,6 +54,9 @@ FULL = {
     "budget": 5000,
     "out": RESULTS / "runs.csv",
 }
+# Extension Part A: the SAME grid on the 16 new images only (16 x 4 x 2 x 7
+# x 30 = 26,880 runs), written to its own file so runs.csv is never touched.
+EXTENDED = dict(FULL, images=BENCHMARK_16_NEW, out=RESULTS / "runs_extended.csv")
 SMOKE = {
     "images": ["camera", "moon"],
     "ks": [2, 3],
@@ -116,8 +122,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[1])
     ap.add_argument("--smoke", action="store_true", help="tiny grid for testing")
     ap.add_argument("--workers", type=int, default=1, help="parallel processes")
+    ap.add_argument("--extended", action="store_true",
+                    help="extension Part A: 16 new images -> results/runs_extended.csv")
     args = ap.parse_args()
-    cfg = SMOKE if args.smoke else FULL
+    cfg = SMOKE if args.smoke else EXTENDED if args.extended else FULL
 
     RESULTS.mkdir(exist_ok=True)
     out = cfg["out"]
